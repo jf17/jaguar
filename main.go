@@ -15,6 +15,12 @@ type environment struct {
 	JavacPath string `xml:"javac"`
 }
 
+type manifest struct {
+	Version   string
+	MainClass string
+	ClassPath string
+}
+
 func readEnvironment() environment {
 	xmlFile, err := os.Open("jaguar/environment.xml")
 	if err != nil {
@@ -39,6 +45,10 @@ func writeEnvironment(env environment) {
 }
 
 func main() {
+	man := manifest{Version: "Manifest-Version: 1.0",
+		MainClass: "",
+		ClassPath: "",
+	}
 	var env environment
 
 	if _, err := os.Stat("jaguar/environment.xml"); err == nil {
@@ -54,6 +64,10 @@ func main() {
 	fmt.Println(env.JavacPath)
 	fmt.Println(env.JarPath)
 	fmt.Println(env.JavaPath)
+
+	fmt.Println(man.Version)
+	fmt.Println(man.MainClass)
+	fmt.Println(man.ClassPath)
 
 	downloader.DownloadFromPom("", "")
 
