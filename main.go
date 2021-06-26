@@ -1,7 +1,7 @@
 package main
 
-import "github.com/jf17/jaguar-dependency-downloader"
+import "github.com/jf17/jaguar/dependency"
 
 func main() {
-	jagdepdownl.DownloadFromPom("", "")
+	downloader.DownloadFromPom("", "")
 }
