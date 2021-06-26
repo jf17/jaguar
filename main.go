@@ -16,7 +16,7 @@ type environment struct {
 }
 
 func readEnvironment() environment {
-	xmlFile, err := os.Open("jaguar/config.xml")
+	xmlFile, err := os.Open("jaguar/environment.xml")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -35,13 +35,13 @@ func writeEnvironment(env environment) {
 		os.MkdirAll(dirPath, os.ModePerm)
 	}
 
-	_ = ioutil.WriteFile("jaguar/config.xml", file, 0644)
+	_ = ioutil.WriteFile("jaguar/environment.xml", file, 0644)
 }
 
 func main() {
 	var env environment
 
-	if _, err := os.Stat("jaguar/config.xml"); err == nil {
+	if _, err := os.Stat("jaguar/environment.xml"); err == nil {
 		env = readEnvironment()
 	} else {
 		env = environment{JavaPath: "C:\\Program Files\\Java\\jdk-16\\bin\\java.exe",
