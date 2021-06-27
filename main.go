@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/jf17/jaguar/dependency"
+	"github.com/jf17/jaguar/packager"
 )
 
 type environment struct {
@@ -44,9 +47,26 @@ func writeEnvironment(env environment) {
 	_ = ioutil.WriteFile("jaguar/tmp/environment.xml", file, 0644)
 }
 
+func createManifestFile(man manifest) {
+	file, err := os.OpenFile("jar/Manifest.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if err != nil {
+		log.Fatalf("failed creating file: %s", err)
+	}
+
+	datawriter := bufio.NewWriter(file)
+
+	_, _ = datawriter.WriteString(man.Version + "\n")
+	_, _ = datawriter.WriteString(man.MainClass + "\n")
+	_, _ = datawriter.WriteString(man.ClassPath + "\n")
+
+	datawriter.Flush()
+	file.Close()
+}
+
 func main() {
 	man := manifest{Version: "Manifest-Version: 1.0",
-		MainClass: "",
+		MainClass: "Main-Class: ru.jf17.ide.Main",
 		ClassPath: "",
 	}
 	var env environment
@@ -61,14 +81,19 @@ func main() {
 		writeEnvironment(env)
 	}
 
+	man.ClassPath = download.FromPom("", "")
+
+	fmt.Println("Environment:")
 	fmt.Println(env.JavacPath)
 	fmt.Println(env.JarPath)
 	fmt.Println(env.JavaPath)
 
+	fmt.Println("Manifest:")
 	fmt.Println(man.Version)
 	fmt.Println(man.MainClass)
 	fmt.Println(man.ClassPath)
 
-	download.FromPom("", "")
+	createManifestFile(man)
+	jar.Pack(env.JarPath)
 
 }

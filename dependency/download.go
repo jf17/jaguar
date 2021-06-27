@@ -46,7 +46,7 @@ func downloadFile(fileName string, url string) error {
 		os.Exit(1)
 	}
 
-	oneFolder := "JAR"
+	oneFolder := "jar"
 	twoFolder := "build"
 	threeFolder := "lib"
 
@@ -98,7 +98,7 @@ func downloadFile(fileName string, url string) error {
 	return nil
 }
 
-func FromPom(resourceUrl string, pomFilepath string) {
+func FromPom(resourceUrl string, pomFilepath string) string {
 	var fileSTR string = "Class-Path: "
 
 	v := pomDependenciesStr{}
@@ -152,9 +152,11 @@ func FromPom(resourceUrl string, pomFilepath string) {
 	//TODO: Parser pom.xml file
 
 	fileName := "listLib.txt"
-	oneFolder := "JAR"
+	oneFolder := "jar"
 	fullPath := filepath.Join(oneFolder, fileName)
 	writeStringToFile(fullPath, fileSTR)
 
 	fmt.Println("........ Done !")
+
+	return fileSTR
 }
