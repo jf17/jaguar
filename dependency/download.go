@@ -1,4 +1,4 @@
-package downloader
+package download
 
 import (
 	"encoding/xml"
@@ -98,7 +98,7 @@ func downloadFile(fileName string, url string) error {
 	return nil
 }
 
-func DownloadFromPom(resourceUrl string, pomFilepath string) {
+func FromPom(resourceUrl string, pomFilepath string) {
 	var fileSTR string = "Class-Path: "
 
 	v := pomDependenciesStr{}

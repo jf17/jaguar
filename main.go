@@ -69,6 +69,6 @@ func main() {
 	fmt.Println(man.MainClass)
 	fmt.Println(man.ClassPath)
 
-	downloader.DownloadFromPom("", "")
+	download.FromPom("", "")
 
 }
