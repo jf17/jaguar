@@ -2,12 +2,13 @@ package jar
 
 import (
 	"fmt"
-	"os"
+	//"os"
 	"os/exec"
 )
 
-func Pack(jarPath string) {
-	cmd := exec.Command(jarPath, "cvfm", "build/MyIDE.jar", "Manifest.txt", "ru")
+func Pack(jarPath string, fileName string) {
+	name := "build/" + fileName + ".jar"
+	cmd := exec.Command(jarPath, "cvfm", name, "Manifest.txt", "ru")
 	cmd.Dir = "jar"
 
 	//cmd.Stdout = os.Stdout

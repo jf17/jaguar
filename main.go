@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/jf17/jaguar/compiler"
 	"github.com/jf17/jaguar/dependency"
 	"github.com/jf17/jaguar/packager"
 )
@@ -22,6 +23,13 @@ type manifest struct {
 	Version   string
 	MainClass string
 	ClassPath string
+}
+
+func clearJarDir() {
+	err := os.RemoveAll("jar")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func readEnvironment() environment {
@@ -81,9 +89,10 @@ func main() {
 		writeEnvironment(env)
 	}
 
+	clearJarDir()
 	man.ClassPath = download.FromPom("", "")
 
-	fmt.Println("Environment:")
+	/*fmt.Println("Environment:")
 	fmt.Println(env.JavacPath)
 	fmt.Println(env.JarPath)
 	fmt.Println(env.JavaPath)
@@ -91,9 +100,10 @@ func main() {
 	fmt.Println("Manifest:")
 	fmt.Println(man.Version)
 	fmt.Println(man.MainClass)
-	fmt.Println(man.ClassPath)
+	fmt.Println(man.ClassPath)*/
 
 	createManifestFile(man)
-	jar.Pack(env.JarPath)
+	javac.Compile(env.JavacPath)
+	jar.Pack(env.JarPath, "MyIDE")
 
 }
