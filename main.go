@@ -22,7 +22,7 @@ type manifest struct {
 }
 
 func readEnvironment() environment {
-	xmlFile, err := os.Open("jaguar/environment.xml")
+	xmlFile, err := os.Open("jaguar/tmp/environment.xml")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -35,13 +35,13 @@ func readEnvironment() environment {
 func writeEnvironment(env environment) {
 	file, _ := xml.MarshalIndent(env, "", " ")
 
-	dirPath := "jaguar"
+	dirPath := "jaguar/tmp"
 	_, err := os.Stat(dirPath)
 	if err != nil {
 		os.MkdirAll(dirPath, os.ModePerm)
 	}
 
-	_ = ioutil.WriteFile("jaguar/environment.xml", file, 0644)
+	_ = ioutil.WriteFile("jaguar/tmp/environment.xml", file, 0644)
 }
 
 func main() {
@@ -51,7 +51,7 @@ func main() {
 	}
 	var env environment
 
-	if _, err := os.Stat("jaguar/environment.xml"); err == nil {
+	if _, err := os.Stat("jaguar/tmp/environment.xml"); err == nil {
 		env = readEnvironment()
 	} else {
 		env = environment{JavaPath: "C:\\Program Files\\Java\\jdk-16\\bin\\java.exe",
