@@ -13,6 +13,13 @@ import (
 	"github.com/jf17/jaguar/packager"
 )
 
+type project struct {
+	GroupId    string `xml:"groupId"`
+	ArtifactId string `xml:"artifactId"`
+	FileName   string `xml:"fileName"`
+	Version    string `xml:"version"`
+}
+
 type environment struct {
 	JavaPath  string `xml:"java"`
 	JarPath   string `xml:"jar"`
@@ -55,6 +62,29 @@ func writeEnvironment(env environment) {
 	_ = ioutil.WriteFile("jaguar/tmp/environment.xml", file, 0644)
 }
 
+func readProject() project {
+	xmlFile, err := os.Open("jaguar/project.xml")
+	if err != nil {
+		fmt.Println(err)
+	}
+	byteValue, _ := ioutil.ReadAll(xmlFile)
+	var proj project
+	xml.Unmarshal(byteValue, &proj)
+	return proj
+}
+
+func writeProject(proj project) {
+	file, _ := xml.MarshalIndent(proj, "", " ")
+
+	dirPath := "jaguar"
+	_, err := os.Stat(dirPath)
+	if err != nil {
+		os.MkdirAll(dirPath, os.ModePerm)
+	}
+
+	_ = ioutil.WriteFile("jaguar/project.xml", file, 0644)
+}
+
 func createManifestFile(man manifest) {
 	file, err := os.OpenFile("jar/Manifest.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
@@ -73,10 +103,19 @@ func createManifestFile(man manifest) {
 }
 
 func main() {
-	man := manifest{Version: "Manifest-Version: 1.0",
-		MainClass: "Main-Class: ru.jf17.ide.Main",
-		ClassPath: "",
+	var proj project
+
+	if _, err := os.Stat("jaguar/project.xml"); err == nil {
+		proj = readProject()
+	} else {
+		proj = project{FileName: "MyIDE",
+			GroupId:    "ru.jf17.ide",
+			ArtifactId: "Main",
+			Version:    "1.0-SNAPSHOT",
+		}
+		writeProject(proj)
 	}
+
 	var env environment
 
 	if _, err := os.Stat("jaguar/tmp/environment.xml"); err == nil {
@@ -87,6 +126,11 @@ func main() {
 			JarPath:   "C:\\Program Files\\Java\\jdk-16\\bin\\jar.exe",
 		}
 		writeEnvironment(env)
+	}
+
+	man := manifest{Version: "Manifest-Version: 1.0",
+		MainClass: "Main-Class: " + proj.GroupId + "." + proj.ArtifactId,
+		ClassPath: "",
 	}
 
 	clearJarDir()
@@ -104,6 +148,6 @@ func main() {
 
 	createManifestFile(man)
 	javac.Compile(env.JavacPath)
-	jar.Pack(env.JarPath, "MyIDE")
+	jar.Pack(env.JarPath, proj.FileName+"-"+proj.Version)
 
 }
