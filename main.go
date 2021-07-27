@@ -8,9 +8,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/jf17/jaguar/compiler"
-	"github.com/jf17/jaguar/dependency"
-	"github.com/jf17/jaguar/packager"
+	javac "github.com/jf17/jaguar/compiler"
+	download "github.com/jf17/jaguar/dependency"
+	jar "github.com/jf17/jaguar/packager"
 )
 
 type project struct {
@@ -118,33 +118,66 @@ func main() {
 
 	var env environment
 
-	if _, err := os.Stat("jaguar/tmp/environment.xml"); err == nil {
-		env = readEnvironment()
+	// os.Setenv("JAGUAR-JAVA", "C:\\Program Files\\Java\\jdk-16\\bin\\java.exe")
+	// os.Setenv("JAGUAR-JAVAC", "C:\\Program Files\\Java\\jdk-16\\bin\\javac.exe")
+	// os.Setenv("JAGUAR-JAR", "C:\\Program Files\\Java\\jdk-16\\bin\\jar.exe")
+
+	javaPath, ok := os.LookupEnv("JAGUAR-JAVA")
+	if !ok {
+		fmt.Println("[ERROR] JAGUAR-JAVA is not present!")
+		os.Exit(2)
 	} else {
-		env = environment{JavaPath: "C:\\Program Files\\Java\\jdk-16\\bin\\java.exe",
-			JavacPath: "C:\\Program Files\\Java\\jdk-16\\bin\\javac.exe",
-			JarPath:   "C:\\Program Files\\Java\\jdk-16\\bin\\jar.exe",
+		if _, err := os.Stat(javaPath); err == nil {
+			env.JavaPath = javaPath
+		} else {
+			fmt.Println("[ERROR] JAGUAR-JAVA file is not exists!")
+			os.Exit(2)
 		}
-		writeEnvironment(env)
 	}
+
+	javacPath, okJavac := os.LookupEnv("JAGUAR-JAVAC")
+	if !okJavac {
+		fmt.Println("[ERROR] JAGUAR-JAVAC is not present")
+		os.Exit(2)
+	} else {
+		if _, err := os.Stat(javacPath); err == nil {
+			env.JavacPath = javacPath
+		} else {
+			fmt.Println("[ERROR] JAGUAR-JAVAC file is not exists!")
+			os.Exit(2)
+		}
+	}
+
+	jarPath, okJar := os.LookupEnv("JAGUAR-JAR")
+	if !okJar {
+		fmt.Println("[ERROR] JAGUAR-JAR is not present")
+		os.Exit(2)
+	} else {
+		if _, err := os.Stat(jarPath); err == nil {
+			env.JarPath = jarPath
+		} else {
+			fmt.Println("[ERROR] JAGUAR-JAR file is not exists!")
+			os.Exit(2)
+		}
+	}
+
+	fmt.Println("Environment:")
+	fmt.Println(env.JavaPath)
+	fmt.Println(env.JavacPath)
+	fmt.Println(env.JarPath)
 
 	man := manifest{Version: "Manifest-Version: 1.0",
 		MainClass: "Main-Class: " + proj.GroupId + "." + proj.ArtifactId,
 		ClassPath: "",
 	}
 
-	clearJarDir()
-	man.ClassPath = download.FromPom("", "")
-
-	/*fmt.Println("Environment:")
-	fmt.Println(env.JavacPath)
-	fmt.Println(env.JarPath)
-	fmt.Println(env.JavaPath)
-
 	fmt.Println("Manifest:")
 	fmt.Println(man.Version)
 	fmt.Println(man.MainClass)
-	fmt.Println(man.ClassPath)*/
+	fmt.Println(man.ClassPath)
+
+	clearJarDir()
+	man.ClassPath = download.FromPom("", "")
 
 	createManifestFile(man)
 	javac.Compile(env.JavacPath)
