@@ -161,20 +161,20 @@ func main() {
 		}
 	}
 
-	fmt.Println("Environment:")
-	fmt.Println(env.JavaPath)
-	fmt.Println(env.JavacPath)
-	fmt.Println(env.JarPath)
+	// fmt.Println("Environment:")
+	// fmt.Println(env.JavaPath)
+	// fmt.Println(env.JavacPath)
+	// fmt.Println(env.JarPath)
 
 	man := manifest{Version: "Manifest-Version: 1.0",
 		MainClass: "Main-Class: " + proj.GroupId + "." + proj.ArtifactId,
 		ClassPath: "",
 	}
 
-	fmt.Println("Manifest:")
-	fmt.Println(man.Version)
-	fmt.Println(man.MainClass)
-	fmt.Println(man.ClassPath)
+	// fmt.Println("Manifest:")
+	// fmt.Println(man.Version)
+	// fmt.Println(man.MainClass)
+	// fmt.Println(man.ClassPath)
 
 	clearJarDir()
 	man.ClassPath = download.FromPom("", "")
@@ -183,4 +183,5 @@ func main() {
 	javac.Compile(env.JavacPath)
 	jar.Pack(env.JarPath, proj.FileName+"-"+proj.Version)
 
+	fmt.Println("Done! =)")
 }
