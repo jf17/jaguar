@@ -151,12 +151,27 @@ func getEnvironment(osVersion string) Environment {
 	return env
 }
 
+func getHelp() {
+	help := `Usage: jaguar [options]
+where options include:
+    clean       -clean target and classes directory
+    cln         -clean target and classes directory
+    compile
+    package
+    p 
+    full-package
+    fp
+    download
+    d`
+	fmt.Println(help)
+}
+
 func main() {
 	osVersion := getOsVersion()
 	env := getEnvironment(osVersion)
 
 	argsWithProg := os.Args
-	fmt.Println(argsWithProg)
+	//fmt.Println(argsWithProg)
 
 	var proj project
 
@@ -180,19 +195,25 @@ func main() {
 		oneArg := argsWithProg[1]
 		if oneArg == "clean" || oneArg == "cln" {
 			clearTargetDir()
-			return
 		} else if oneArg == "compile" {
 			javac.Compile(osVersion, env.JavacPath)
-			return
 		} else if oneArg == "package" || oneArg == "p" {
 			createManifestFile(man)
 			jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
-			return
+		} else if oneArg == "full-package" || oneArg == "fp" {
+			clearTargetDir()
+			man.ClassPath = download.FromPom("", "")
+			createManifestFile(man)
+			javac.Compile(osVersion, env.JavacPath)
+			jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
 		} else if oneArg == "download" || oneArg == "d" {
 			clearTargetDir()
 			man.ClassPath = download.FromPom("", "")
-			return
+		} else if oneArg == "help" || oneArg == "h" || oneArg == "-help" || oneArg == "-h" {
+			getHelp()
 		}
+	} else {
+		getHelp()
 	}
 
 	// os.Setenv("JAGUAR-JAVA", "C:\\Program Files\\Java\\jdk-16\\bin\\java.exe")
@@ -208,14 +229,4 @@ func main() {
 	// fmt.Println(man.Version)
 	// fmt.Println(man.MainClass)
 	// fmt.Println(man.ClassPath)
-
-	clearTargetDir()
-	man.ClassPath = download.FromPom("", "")
-
-	createManifestFile(man)
-	javac.Compile(osVersion, env.JavacPath)
-	//jar.Pack(env.JarPath, proj.FileName+"-"+proj.Version)
-	jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
-
-	fmt.Println("Done! =)")
 }
