@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 
 	javac "github.com/jf17/jaguar/compiler"
 	download "github.com/jf17/jaguar/dependency"
@@ -20,7 +21,7 @@ type project struct {
 	Version    string `xml:"version"`
 }
 
-type environment struct {
+type Environment struct {
 	JavaPath  string `xml:"java"`
 	JarPath   string `xml:"jar"`
 	JavacPath string `xml:"javac"`
@@ -32,25 +33,29 @@ type manifest struct {
 	ClassPath string
 }
 
-func clearJarDir() {
-	err := os.RemoveAll("jar")
+func clearTargetDir() {
+	err := os.RemoveAll("target")
 	if err != nil {
 		log.Fatal(err)
 	}
+	err2 := os.RemoveAll("classes")
+	if err2 != nil {
+		log.Fatal(err2)
+	}
 }
 
-func readEnvironment() environment {
+func readEnvironment() Environment {
 	xmlFile, err := os.Open("jaguar/tmp/environment.xml")
 	if err != nil {
 		fmt.Println(err)
 	}
 	byteValue, _ := ioutil.ReadAll(xmlFile)
-	var env environment
+	var env Environment
 	xml.Unmarshal(byteValue, &env)
 	return env
 }
 
-func writeEnvironment(env environment) {
+func writeEnvironment(env Environment) {
 	file, _ := xml.MarshalIndent(env, "", " ")
 
 	dirPath := "jaguar/tmp"
@@ -86,7 +91,7 @@ func writeProject(proj project) {
 }
 
 func createManifestFile(man manifest) {
-	file, err := os.OpenFile("jar/Manifest.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile("target/Manifest.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
 		log.Fatalf("failed creating file: %s", err)
@@ -102,7 +107,80 @@ func createManifestFile(man manifest) {
 	file.Close()
 }
 
+func getOsVersion() string {
+	if runtime.GOOS == "windows" {
+		return "windows"
+	} else if runtime.GOOS == "linux" {
+		return "linux"
+	} else if runtime.GOOS == "darwin" {
+		panic("Sorry. Apple MacOS not supported !!!")
+		os.Exit(10)
+	} else {
+		panic("OS version not recognized")
+		os.Exit(42)
+	}
+	return ""
+}
+
+func getEnvironment(osVersion string) Environment {
+	var env Environment
+	if osVersion == "windows" {
+		javaPath, ok := os.LookupEnv("JAGUAR-JAVA")
+		if !ok {
+			fmt.Println("[ERROR] JAGUAR-JAVA is not present!")
+			os.Exit(2)
+		} else {
+			if _, err := os.Stat(javaPath); err == nil {
+				env.JavaPath = javaPath
+			} else {
+				fmt.Println("[ERROR] JAGUAR-JAVA file is not exists!")
+				os.Exit(2)
+			}
+		}
+
+		javacPath, okJavac := os.LookupEnv("JAGUAR-JAVAC")
+		if !okJavac {
+			fmt.Println("[ERROR] JAGUAR-JAVAC is not present")
+			os.Exit(2)
+		} else {
+			if _, err := os.Stat(javacPath); err == nil {
+				env.JavacPath = javacPath
+			} else {
+				fmt.Println("[ERROR] JAGUAR-JAVAC file is not exists!")
+				os.Exit(2)
+			}
+		}
+
+		jarPath, okJar := os.LookupEnv("JAGUAR-JAR")
+		if !okJar {
+			fmt.Println("[ERROR] JAGUAR-JAR is not present")
+			os.Exit(2)
+		} else {
+			if _, err := os.Stat(jarPath); err == nil {
+				env.JarPath = jarPath
+			} else {
+				fmt.Println("[ERROR] JAGUAR-JAR file is not exists!")
+				os.Exit(2)
+			}
+		}
+	} else if osVersion == "linux" {
+	} else if runtime.GOOS == "darwin" {
+		panic("Sorry. Apple MacOS not supported !!!")
+		os.Exit(10)
+	} else {
+		panic("OS version not recognized")
+		os.Exit(42)
+	}
+	return env
+}
+
 func main() {
+	osVersion := getOsVersion()
+	env := getEnvironment(osVersion)
+
+	argsWithProg := os.Args
+	fmt.Println(argsWithProg)
+
 	var proj project
 
 	if _, err := os.Stat("jaguar/project.xml"); err == nil {
@@ -116,72 +194,51 @@ func main() {
 		writeProject(proj)
 	}
 
-	var env environment
+	man := manifest{Version: "Manifest-Version: 1.0",
+		MainClass: "Main-Class: " + proj.GroupId + "." + proj.ArtifactId,
+		ClassPath: "",
+	}
+
+	if len(argsWithProg) == 2 {
+		oneArg := argsWithProg[1]
+		if oneArg == "clean" || oneArg == "cln" {
+			clearTargetDir()
+			return
+		} else if oneArg == "compile" {
+			javac.Compile(osVersion, env.JavacPath)
+			return
+		} else if oneArg == "package" || oneArg == "p" {
+			createManifestFile(man)
+			jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
+			return
+		} else if oneArg == "download" || oneArg == "d" {
+			clearTargetDir()
+			man.ClassPath = download.FromPom("", "")
+			return
+		}
+	}
 
 	// os.Setenv("JAGUAR-JAVA", "C:\\Program Files\\Java\\jdk-16\\bin\\java.exe")
 	// os.Setenv("JAGUAR-JAVAC", "C:\\Program Files\\Java\\jdk-16\\bin\\javac.exe")
 	// os.Setenv("JAGUAR-JAR", "C:\\Program Files\\Java\\jdk-16\\bin\\jar.exe")
-
-	javaPath, ok := os.LookupEnv("JAGUAR-JAVA")
-	if !ok {
-		fmt.Println("[ERROR] JAGUAR-JAVA is not present!")
-		os.Exit(2)
-	} else {
-		if _, err := os.Stat(javaPath); err == nil {
-			env.JavaPath = javaPath
-		} else {
-			fmt.Println("[ERROR] JAGUAR-JAVA file is not exists!")
-			os.Exit(2)
-		}
-	}
-
-	javacPath, okJavac := os.LookupEnv("JAGUAR-JAVAC")
-	if !okJavac {
-		fmt.Println("[ERROR] JAGUAR-JAVAC is not present")
-		os.Exit(2)
-	} else {
-		if _, err := os.Stat(javacPath); err == nil {
-			env.JavacPath = javacPath
-		} else {
-			fmt.Println("[ERROR] JAGUAR-JAVAC file is not exists!")
-			os.Exit(2)
-		}
-	}
-
-	jarPath, okJar := os.LookupEnv("JAGUAR-JAR")
-	if !okJar {
-		fmt.Println("[ERROR] JAGUAR-JAR is not present")
-		os.Exit(2)
-	} else {
-		if _, err := os.Stat(jarPath); err == nil {
-			env.JarPath = jarPath
-		} else {
-			fmt.Println("[ERROR] JAGUAR-JAR file is not exists!")
-			os.Exit(2)
-		}
-	}
 
 	// fmt.Println("Environment:")
 	// fmt.Println(env.JavaPath)
 	// fmt.Println(env.JavacPath)
 	// fmt.Println(env.JarPath)
 
-	man := manifest{Version: "Manifest-Version: 1.0",
-		MainClass: "Main-Class: " + proj.GroupId + "." + proj.ArtifactId,
-		ClassPath: "",
-	}
-
 	// fmt.Println("Manifest:")
 	// fmt.Println(man.Version)
 	// fmt.Println(man.MainClass)
 	// fmt.Println(man.ClassPath)
 
-	clearJarDir()
+	clearTargetDir()
 	man.ClassPath = download.FromPom("", "")
 
 	createManifestFile(man)
-	javac.Compile(env.JavacPath)
-	jar.Pack(env.JarPath, proj.FileName+"-"+proj.Version)
+	javac.Compile(osVersion, env.JavacPath)
+	//jar.Pack(env.JarPath, proj.FileName+"-"+proj.Version)
+	jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
 
 	fmt.Println("Done! =)")
 }

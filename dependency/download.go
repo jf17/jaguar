@@ -46,11 +46,12 @@ func downloadFile(fileName string, url string) error {
 		os.Exit(1)
 	}
 
-	oneFolder := "jar"
-	twoFolder := "build"
-	threeFolder := "lib"
+	oneFolder := "target"
+	twoFolder := "dependency"
+	//threeFolder := "lib"
 
-	dirPath := filepath.Join(pwd, oneFolder, twoFolder, threeFolder)
+	//dirPath := filepath.Join(pwd, oneFolder, twoFolder, threeFolder)
+	dirPath := filepath.Join(pwd, oneFolder, twoFolder)
 
 	fullPath := filepath.Join(dirPath, fileName)
 
@@ -59,8 +60,6 @@ func downloadFile(fileName string, url string) error {
 		//fmt.Println("create dir ...")
 		os.MkdirAll(dirPath, os.ModePerm)
 	}
-
-	//fmt.Println("Downloading file...")
 
 	// Create the file
 	out, err := os.Create(fullPath)
@@ -77,13 +76,13 @@ func downloadFile(fileName string, url string) error {
 	defer resp.Body.Close()
 
 	// Write the body to file
-	//size, err := io.Copy(out, resp.Body)
-	_, err = io.Copy(out, resp.Body)
+	size, err := io.Copy(out, resp.Body)
+	//_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return err
 	}
 
-	/*if (size / 1024) > 0 {
+	if (size / 1024) > 0 {
 		if (size / 1048576) > 0 {
 			result := size / 1048576
 
@@ -95,7 +94,7 @@ func downloadFile(fileName string, url string) error {
 	} else {
 		fmt.Printf("%s with %v bytes downloaded \n", fileName, size)
 	}
-	*/
+
 	return nil
 }
 
@@ -125,6 +124,8 @@ func FromPom(resourceUrl string, pomFilepath string) string {
 		resourceUrl = "https://repo1.maven.org/maven2/"
 	}
 
+	fmt.Println("Start downloading files:")
+
 	for i := range v.Depen {
 
 		if v.Depen[i].Scope == "" || v.Depen[i].Scope == "compile" {
@@ -137,7 +138,7 @@ func FromPom(resourceUrl string, pomFilepath string) string {
 
 			fileUrl := resourceUrl + newGroupID + "/" + art + "/" + ver + "/" + fileName
 
-			fileSTR = fileSTR + "lib/" + fileName + " "
+			fileSTR = fileSTR + "dependency/" + fileName + " "
 
 			//	fmt.Println(fileUrl, fileName)
 
