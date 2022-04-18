@@ -44,29 +44,6 @@ func clearTargetDir() {
 	}
 }
 
-func readEnvironment() Environment {
-	xmlFile, err := os.Open("jaguar/tmp/environment.xml")
-	if err != nil {
-		fmt.Println(err)
-	}
-	byteValue, _ := ioutil.ReadAll(xmlFile)
-	var env Environment
-	xml.Unmarshal(byteValue, &env)
-	return env
-}
-
-func writeEnvironment(env Environment) {
-	file, _ := xml.MarshalIndent(env, "", " ")
-
-	dirPath := "jaguar/tmp"
-	_, err := os.Stat(dirPath)
-	if err != nil {
-		os.MkdirAll(dirPath, os.ModePerm)
-	}
-
-	_ = ioutil.WriteFile("jaguar/tmp/environment.xml", file, 0644)
-}
-
 func readProject() project {
 	xmlFile, err := os.Open("jaguar/project.xml")
 	if err != nil {
