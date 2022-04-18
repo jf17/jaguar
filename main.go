@@ -159,8 +159,8 @@ where options include:
     compile
     package
     p 
-    full-package
-    fp
+    clean-package
+    cp
     download
     d`
 	fmt.Println(help)
@@ -198,9 +198,8 @@ func main() {
 		} else if oneArg == "compile" {
 			javac.Compile(osVersion, env.JavacPath)
 		} else if oneArg == "package" || oneArg == "p" {
-			createManifestFile(man)
 			jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
-		} else if oneArg == "full-package" || oneArg == "fp" {
+		} else if oneArg == "clean-package" || oneArg == "cp" {
 			clearTargetDir()
 			man.ClassPath = download.FromPom("", "")
 			createManifestFile(man)
@@ -209,6 +208,7 @@ func main() {
 		} else if oneArg == "download" || oneArg == "d" {
 			clearTargetDir()
 			man.ClassPath = download.FromPom("", "")
+			createManifestFile(man)
 		} else if oneArg == "help" || oneArg == "h" || oneArg == "-help" || oneArg == "-h" {
 			getHelp()
 		}
