@@ -159,8 +159,10 @@ where options include:
     compile
     package
     p 
+    compile-package
+    comp-p
     clean-package
-    cp
+    cln-p
     download
     d`
 	fmt.Println(help)
@@ -199,10 +201,13 @@ func main() {
 			javac.Compile(osVersion, env.JavacPath)
 		} else if oneArg == "package" || oneArg == "p" {
 			jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
-		} else if oneArg == "clean-package" || oneArg == "cp" {
+		} else if oneArg == "clean-package" || oneArg == "cln-p" {
 			clearTargetDir()
 			man.ClassPath = download.FromPom("", "")
 			createManifestFile(man)
+			javac.Compile(osVersion, env.JavacPath)
+			jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
+		} else if oneArg == "compile-package" || oneArg == "comp-p" {
 			javac.Compile(osVersion, env.JavacPath)
 			jar.Pack(osVersion, env.JarPath, proj.FileName+"-"+proj.Version)
 		} else if oneArg == "download" || oneArg == "d" {
