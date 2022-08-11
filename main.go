@@ -38,10 +38,6 @@ func clearTargetDir() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err2 := os.RemoveAll("classes")
-	if err2 != nil {
-		log.Fatal(err2)
-	}
 }
 
 func readProject() project {
