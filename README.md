@@ -1,3 +1,3 @@
-# jaguar
+# Jaguar
 
-Jaguar can manage a project's build
+Yet another package manager for Java like Maven or Gradle. 
